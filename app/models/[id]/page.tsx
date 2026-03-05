@@ -52,6 +52,19 @@ export default async function ModelProfilePage({ params }: Props) {
   const m = model as unknown as Model
   const r = (reviews ?? []) as unknown as Review[]
 
+  // Fetch current user and their votes for these reviews
+  const { data: { user } } = await supabase.auth.getUser()
+  const reviewIds = r.map((rev) => rev.id)
+  let votedReviewIds = new Set<string>()
+  if (user && reviewIds.length > 0) {
+    const { data: votes } = await supabase
+      .from('review_helpful_votes')
+      .select('review_id')
+      .eq('user_id', user.id)
+      .in('review_id', reviewIds)
+    votedReviewIds = new Set((votes ?? []).map((v: any) => v.review_id))
+  }
+
   // Use-case distribution from reviews
   const useCaseCounts = r.reduce<Record<string, number>>((acc, rev) => {
     acc[rev.use_case_tag] = (acc[rev.use_case_tag] ?? 0) + 1
@@ -147,7 +160,13 @@ export default async function ModelProfilePage({ params }: Props) {
         ) : (
           <div className="space-y-4">
             {r.map((review) => (
-              <ReviewCard key={review.id} review={review} showModel={false} />
+              <ReviewCard
+                key={review.id}
+                review={review}
+                showModel={false}
+                userId={user?.id}
+                userHasVoted={votedReviewIds.has(review.id)}
+              />
             ))}
           </div>
         )}

@@ -14,6 +14,8 @@ export default function NewReviewPage() {
   const searchParams = useSearchParams()
   const supabase = createClient()
 
+  const editId = searchParams.get('edit')
+
   const [models, setModels] = useState<Model[]>([])
   const [user, setUser] = useState<{ id: string } | null>(null)
   const [loading, setLoading] = useState(false)
@@ -44,7 +46,35 @@ export default function NewReviewPage() {
         .order('name')
       setModels((modelsData as unknown as Model[]) ?? [])
 
-      // Pre-select model from query param
+      // Edit mode: pre-populate form with existing review
+      if (editId) {
+        const { data: existing } = await supabase
+          .from('reviews').select('*').eq('id', editId).single()
+        if (existing) {
+          setForm({
+            model_id: existing.model_id,
+            use_case_tag: existing.use_case_tag,
+            summary: existing.summary,
+            score_output_quality: existing.score_output_quality,
+            score_instruction: existing.score_instruction,
+            score_consistency: existing.score_consistency,
+            score_speed: existing.score_speed,
+            score_cost: existing.score_cost,
+            score_personality: existing.score_personality,
+            score_use_case_fit: existing.score_use_case_fit,
+            note_output_quality: existing.note_output_quality ?? undefined,
+            note_instruction: existing.note_instruction ?? undefined,
+            note_consistency: existing.note_consistency ?? undefined,
+            note_speed: existing.note_speed ?? undefined,
+            note_cost: existing.note_cost ?? undefined,
+            note_personality: existing.note_personality ?? undefined,
+            note_use_case_fit: existing.note_use_case_fit ?? undefined,
+          })
+        }
+        return
+      }
+
+      // Pre-select model from query param (create mode only)
       const modelSlug = searchParams.get('model')
       if (modelSlug && modelsData) {
         const found = modelsData.find((m: any) => m.slug === modelSlug)
@@ -89,10 +119,9 @@ export default function NewReviewPage() {
     setLoading(true)
     setError(null)
 
-    const { error: insertError } = await supabase.from('reviews').insert({
-      user_id: user!.id,
-      ...form,
-    })
+    const { error: insertError } = editId
+      ? await supabase.from('reviews').update({ ...form }).eq('id', editId)
+      : await supabase.from('reviews').insert({ user_id: user!.id, ...form })
 
     if (insertError) {
       setError(insertError.message)
@@ -108,9 +137,9 @@ export default function NewReviewPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold text-white mb-2">Write a Review</h1>
+      <h1 className="text-3xl font-bold text-white mb-2">{editId ? 'Edit Review' : 'Write a Review'}</h1>
       <p className="text-slate-400 mb-8 text-sm">
-        Rate the model across 7 dimensions. Takes under 90 seconds.
+        {editId ? 'Update your ratings and notes below.' : 'Rate the model across 7 dimensions. Takes under 90 seconds.'}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -219,7 +248,7 @@ export default function NewReviewPage() {
           className="btn-primary w-full py-3 text-base"
           disabled={loading || !form.model_id || !form.summary}
         >
-          {loading ? 'Submitting…' : 'Submit Review'}
+          {loading ? (editId ? 'Saving…' : 'Submitting…') : (editId ? 'Save Changes' : 'Submit Review')}
         </button>
       </form>
     </div>

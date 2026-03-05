@@ -44,12 +44,20 @@ export default function ModelsPage() {
       if (filterPricing) query = query.eq('pricing_tier', filterPricing)
       if (search) query = query.ilike('name', `%${search}%`)
 
+      if (filterUseCase) {
+        const { data: rows } = await supabase
+          .from('reviews').select('model_id').eq('use_case_tag', filterUseCase)
+        const ids = (rows ?? []).map((r: any) => r.model_id)
+        if (ids.length === 0) { setModels([]); setLoading(false); return }
+        query = query.in('id', ids)
+      }
+
       const { data } = await query
       setModels((data as unknown as Model[]) ?? [])
       setLoading(false)
     }
     fetchModels()
-  }, [sortBy, filterPricing, search])
+  }, [sortBy, filterPricing, search, filterUseCase])
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
@@ -90,6 +98,18 @@ export default function ModelsPage() {
         >
           {PRICING_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+
+        {/* Use-case filter */}
+        <select
+          className="input w-auto"
+          value={filterUseCase}
+          onChange={(e) => setFilterUseCase(e.target.value)}
+        >
+          <option value="">All Use Cases</option>
+          {Object.entries(USE_CASE_LABELS).map(([val, label]) => (
+            <option key={val} value={val}>{label}</option>
           ))}
         </select>
       </div>

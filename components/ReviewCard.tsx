@@ -2,14 +2,18 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type { Review } from '@/lib/types'
 import { REVIEW_DIMENSIONS, USE_CASE_LABELS } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
-import { Star, ChevronDown, ChevronUp, ThumbsUp } from 'lucide-react'
+import { createClient } from '@/lib/supabase'
+import { Star, ChevronDown, ChevronUp, ThumbsUp, Pencil, Trash2 } from 'lucide-react'
 
 interface Props {
   review: Review
   showModel?: boolean
+  userId?: string | null
+  userHasVoted?: boolean
 }
 
 function StarDisplay({ value }: { value: number }) {
@@ -27,14 +31,41 @@ function StarDisplay({ value }: { value: number }) {
   )
 }
 
-export default function ReviewCard({ review, showModel = true }: Props) {
+export default function ReviewCard({ review, showModel = true, userId, userHasVoted = false }: Props) {
+  const router = useRouter()
+  const supabase = createClient()
+
   const [expanded, setExpanded] = useState(false)
+  const [voted, setVoted] = useState(userHasVoted)
+  const [count, setCount] = useState(review.helpful_count ?? 0)
 
   const hasNotes = REVIEW_DIMENSIONS.some(
     (d) => review[`note_${d.key.replace('score_', '')}` as keyof Review]
   )
 
   const useCaseLabel = USE_CASE_LABELS[review.use_case_tag] ?? review.use_case_tag
+  const isAuthor = !!userId && userId === review.user_id
+  const canVote = !!userId && !isAuthor
+
+  async function handleVote() {
+    if (!canVote) return
+    const nextVoted = !voted
+    setVoted(nextVoted)
+    setCount((c) => c + (nextVoted ? 1 : -1))
+
+    if (nextVoted) {
+      await supabase.from('review_helpful_votes').insert({ user_id: userId, review_id: review.id })
+    } else {
+      await supabase.from('review_helpful_votes').delete()
+        .eq('user_id', userId!).eq('review_id', review.id)
+    }
+  }
+
+  async function handleDelete() {
+    if (!window.confirm('Delete this review? This cannot be undone.')) return
+    await supabase.from('reviews').delete().eq('id', review.id)
+    router.refresh()
+  }
 
   return (
     <div className="card p-5">
@@ -54,9 +85,38 @@ export default function ReviewCard({ review, showModel = true }: Props) {
           </div>
           <p className="text-xs text-slate-500 mt-0.5">{formatDate(review.created_at)}</p>
         </div>
-        <div className="flex items-center gap-1 text-slate-500 text-xs">
-          <ThumbsUp size={12} />
-          {review.helpful_count}
+
+        {/* Actions: helpful vote + author edit/delete */}
+        <div className="flex items-center gap-2">
+          {isAuthor && (
+            <>
+              <button
+                onClick={() => router.push(`/reviews/new?edit=${review.id}`)}
+                className="text-slate-500 hover:text-brand-400 transition-colors"
+                title="Edit review"
+              >
+                <Pencil size={14} />
+              </button>
+              <button
+                onClick={handleDelete}
+                className="text-slate-500 hover:text-red-400 transition-colors"
+                title="Delete review"
+              >
+                <Trash2 size={14} />
+              </button>
+            </>
+          )}
+          <button
+            onClick={handleVote}
+            disabled={!canVote}
+            className={`flex items-center gap-1 text-xs transition-colors ${
+              voted ? 'text-brand-400' : 'text-slate-500'
+            } ${canVote ? 'hover:text-brand-300 cursor-pointer' : 'cursor-default'}`}
+            title={!userId ? 'Sign in to vote' : isAuthor ? "Can't vote your own review" : voted ? 'Remove helpful vote' : 'Mark as helpful'}
+          >
+            <ThumbsUp size={12} fill={voted ? 'currentColor' : 'none'} />
+            {count}
+          </button>
         </div>
       </div>
 
