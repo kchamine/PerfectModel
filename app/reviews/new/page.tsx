@@ -51,24 +51,25 @@ export default function NewReviewPage() {
         const { data: existing } = await supabase
           .from('reviews').select('*').eq('id', editId).single()
         if (existing) {
+          const r = existing as any
           setForm({
-            model_id: existing.model_id,
-            use_case_tag: existing.use_case_tag,
-            summary: existing.summary,
-            score_output_quality: existing.score_output_quality,
-            score_instruction: existing.score_instruction,
-            score_consistency: existing.score_consistency,
-            score_speed: existing.score_speed,
-            score_cost: existing.score_cost,
-            score_personality: existing.score_personality,
-            score_use_case_fit: existing.score_use_case_fit,
-            note_output_quality: existing.note_output_quality ?? undefined,
-            note_instruction: existing.note_instruction ?? undefined,
-            note_consistency: existing.note_consistency ?? undefined,
-            note_speed: existing.note_speed ?? undefined,
-            note_cost: existing.note_cost ?? undefined,
-            note_personality: existing.note_personality ?? undefined,
-            note_use_case_fit: existing.note_use_case_fit ?? undefined,
+            model_id: r.model_id,
+            use_case_tag: r.use_case_tag,
+            summary: r.summary,
+            score_output_quality: r.score_output_quality,
+            score_instruction: r.score_instruction,
+            score_consistency: r.score_consistency,
+            score_speed: r.score_speed,
+            score_cost: r.score_cost,
+            score_personality: r.score_personality,
+            score_use_case_fit: r.score_use_case_fit,
+            note_output_quality: r.note_output_quality ?? undefined,
+            note_instruction: r.note_instruction ?? undefined,
+            note_consistency: r.note_consistency ?? undefined,
+            note_speed: r.note_speed ?? undefined,
+            note_cost: r.note_cost ?? undefined,
+            note_personality: r.note_personality ?? undefined,
+            note_use_case_fit: r.note_use_case_fit ?? undefined,
           })
         }
         return
@@ -78,7 +79,7 @@ export default function NewReviewPage() {
       const modelSlug = searchParams.get('model')
       if (modelSlug && modelsData) {
         const found = modelsData.find((m: any) => m.slug === modelSlug)
-        if (found) setForm((f) => ({ ...f, model_id: found.id }))
+        if (found) setForm((f) => ({ ...f, model_id: (found as any).id }))
       }
     }
     init()
@@ -119,9 +120,11 @@ export default function NewReviewPage() {
     setLoading(true)
     setError(null)
 
+    const db = supabase as any
+    const payload = { user_id: user!.id, ...form }
     const { error: insertError } = editId
-      ? await supabase.from('reviews').update({ ...form }).eq('id', editId)
-      : await supabase.from('reviews').insert({ user_id: user!.id, ...form })
+      ? await db.from('reviews').update(form).eq('id', editId)
+      : await db.from('reviews').insert(payload)
 
     if (insertError) {
       setError(insertError.message)
