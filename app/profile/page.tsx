@@ -64,7 +64,7 @@ export default async function ProfilePage() {
         ) : (
           <div className="space-y-4">
             {r.map((review) => (
-              <ReviewCard key={review.id} review={review} showModel={true} />
+              <ReviewCard key={review.id} review={review} showModel={true} userId={session.user.id} />
             ))}
           </div>
         )}
