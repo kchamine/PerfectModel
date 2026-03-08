@@ -33,6 +33,10 @@ export default function ModelsPage() {
 
   const supabase = createClient()
 
+  const sortLabel = SORT_OPTIONS.find(o => o.value === sortBy)?.label ?? ''
+  const pricingLabel = PRICING_OPTIONS.find(o => o.value === filterPricing)?.label ?? 'All Pricing'
+  const useCaseLabel = filterUseCase ? (USE_CASE_LABELS[filterUseCase as UseCase] ?? filterUseCase) : 'All Use Cases'
+
   useEffect(() => {
     async function fetchModels() {
       setLoading(true)
@@ -82,6 +86,7 @@ export default function ModelsPage() {
         {/* Sort */}
         <select
           className="input w-auto"
+          style={{ width: `${sortLabel.length + 5}ch` }}
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
         >
@@ -93,6 +98,7 @@ export default function ModelsPage() {
         {/* Pricing filter */}
         <select
           className="input w-auto"
+          style={{ width: `${pricingLabel.length + 5}ch` }}
           value={filterPricing}
           onChange={(e) => setFilterPricing(e.target.value)}
         >
@@ -104,6 +110,7 @@ export default function ModelsPage() {
         {/* Use-case filter */}
         <select
           className="input w-auto"
+          style={{ width: `${useCaseLabel.length + 5}ch` }}
           value={filterUseCase}
           onChange={(e) => setFilterUseCase(e.target.value)}
         >
