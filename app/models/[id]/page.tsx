@@ -85,7 +85,12 @@ export default async function ModelProfilePage({ params }: Props) {
               </span>
             )}
           </div>
-          <h1 className="text-4xl font-bold text-white mb-3">{m.name}</h1>
+          <h1 className="text-4xl font-bold text-white mb-3">
+            {m.name}
+            {m.is_active === false && (
+              <span className="ml-3 text-sm font-normal badge bg-slate-700 text-slate-400 align-middle">Legacy</span>
+            )}
+          </h1>
           {m.description && (
             <p className="text-slate-400 max-w-xl">{m.description}</p>
           )}

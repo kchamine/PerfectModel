@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase'
 import ModelCard from '@/components/ModelCard'
 import type { Model, UseCase } from '@/lib/types'
 import { USE_CASE_LABELS } from '@/lib/types'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Search, LayoutGrid, Layers } from 'lucide-react'
 
 const SORT_OPTIONS = [
   { value: 'score_overall',  label: 'Top Rated' },
@@ -30,6 +30,7 @@ export default function ModelsPage() {
   const [sortBy, setSortBy] = useState('score_overall')
   const [filterPricing, setFilterPricing] = useState('')
   const [filterUseCase, setFilterUseCase] = useState('')
+  const [viewMode, setViewMode] = useState<'grid' | 'grouped'>('grid')
 
   const supabase = createClient()
 
@@ -63,6 +64,15 @@ export default function ModelsPage() {
     fetchModels()
   }, [sortBy, filterPricing, search, filterUseCase])
 
+  // Build provider groups for grouped view
+  const providerGroups = models.reduce<Record<string, { active: Model[], legacy: Model[] }>>((acc, m) => {
+    if (!acc[m.provider]) acc[m.provider] = { active: [], legacy: [] }
+    if (m.is_active === false) acc[m.provider].legacy.push(m)
+    else acc[m.provider].active.push(m)
+    return acc
+  }, {})
+  const sortedProviders = Object.keys(providerGroups).sort()
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
       <div className="mb-8">
@@ -71,7 +81,7 @@ export default function ModelsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-8">
+      <div className="flex flex-wrap gap-3 mb-8 items-center">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
@@ -119,9 +129,27 @@ export default function ModelsPage() {
             <option key={val} value={val}>{label}</option>
           ))}
         </select>
+
+        {/* View toggle */}
+        <div className="flex rounded-lg border border-slate-700 overflow-hidden ml-auto">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            title="Grid view"
+          >
+            <LayoutGrid size={16} />
+          </button>
+          <button
+            onClick={() => setViewMode('grouped')}
+            className={`p-2 transition-colors ${viewMode === 'grouped' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+            title="Group by provider"
+          >
+            <Layers size={16} />
+          </button>
+        </div>
       </div>
 
-      {/* Model Grid */}
+      {/* Loading skeleton */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -132,11 +160,45 @@ export default function ModelsPage() {
         <div className="text-center py-20 text-slate-500">
           No models found. Try adjusting your filters.
         </div>
-      ) : (
+      ) : viewMode === 'grid' ? (
+        /* Grid view */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {models.map((model) => (
             <ModelCard key={model.id} model={model} />
           ))}
+        </div>
+      ) : (
+        /* Grouped view */
+        <div className="space-y-10">
+          {sortedProviders.map((provider) => {
+            const { active, legacy } = providerGroups[provider]
+            return (
+              <div key={provider}>
+                <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-3">
+                  {provider}
+                  <span className="h-px flex-1 bg-slate-800" />
+                </h2>
+
+                {active.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs uppercase tracking-widest text-slate-500 mb-3">Active</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {active.map((m) => <ModelCard key={m.id} model={m} />)}
+                    </div>
+                  </div>
+                )}
+
+                {legacy.length > 0 && (
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-slate-500 mb-3">Legacy</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 opacity-70">
+                      {legacy.map((m) => <ModelCard key={m.id} model={m} />)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

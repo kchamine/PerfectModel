@@ -35,6 +35,9 @@ export default function ModelCard({ model }: Props) {
 
         {/* Meta */}
         <div className="flex flex-wrap gap-2 mt-auto">
+          {model.is_active === false && (
+            <span className="badge bg-slate-700 text-slate-400">Legacy</span>
+          )}
           {model.pricing_tier && (
             <span className={`badge ${getPricingBadgeColor(model.pricing_tier)}`}>
               {model.pricing_tier}

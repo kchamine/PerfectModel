@@ -269,3 +269,12 @@ insert into models (name, slug, provider, description, release_date, context_win
   ('Mistral Large', 'mistral-large', 'Mistral AI', 'Mistral''s top-tier model. Excellent for reasoning, code, and multilingual tasks.', '2024-02-26', 128000, 'paid', '$8/1M input tokens', ARRAY['text'], 'https://mistral.ai'),
   ('Grok-2', 'grok-2', 'xAI', 'xAI''s flagship model with real-time access to X/Twitter data. Strong reasoning and coding.', '2024-08-13', 131072, 'freemium', 'Included with X Premium+', ARRAY['text','image'], 'https://x.ai/grok'),
   ('Command R+', 'command-r-plus', 'Cohere', 'Cohere''s enterprise model optimised for RAG, tool use, and multi-step reasoning.', '2024-04-04', 128000, 'api-only', '$3/1M input tokens', ARRAY['text'], 'https://cohere.com/command');
+
+-- ── Migration: Live Model Sync ────────────────────────────────
+-- Run this in the Supabase SQL editor to enable automated sync from OpenRouter.
+-- After running, set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY as GitHub
+-- repository secrets, then trigger the sync-models workflow manually.
+alter table models
+  add column if not exists openrouter_id   text unique,
+  add column if not exists is_active       boolean default true,
+  add column if not exists expiration_date date;

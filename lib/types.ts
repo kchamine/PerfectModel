@@ -62,6 +62,9 @@ export interface Model {
   pricing_note: string | null
   modalities: string[]
   is_api_available: boolean
+  is_active: boolean
+  openrouter_id: string | null
+  expiration_date: string | null
   website_url: string | null
   logo_url: string | null
   score_output_quality: number
