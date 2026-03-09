@@ -20,7 +20,6 @@ const PROVIDER_NAMES: Record<string, string> = {
   'openai':         'OpenAI',
   'anthropic':      'Anthropic',
   'google':         'Google',
-  'google-deepmind': 'Google',
   'meta-llama':     'Meta',
   'mistralai':      'Mistral AI',
   'xai':            'xAI',
