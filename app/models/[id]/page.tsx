@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase-server'
 import DimensionScorecard from '@/components/DimensionScorecard'
 import ReviewCard from '@/components/ReviewCard'
 import type { Model, Review } from '@/lib/types'
-import { formatContextWindow, formatDate, getPricingBadgeColor, formatScore, scoreToColor } from '@/lib/utils'
+import { formatContextWindow, formatDate, getPricingBadgeColor, formatScore, scoreToColor, getProviderLogoUrl } from '@/lib/utils'
 import { ExternalLink, Star, PenLine } from 'lucide-react'
 
 interface Props {
@@ -78,6 +78,16 @@ export default async function ModelProfilePage({ params }: Props) {
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10">
         <div>
           <div className="flex items-center gap-3 mb-2">
+            {getProviderLogoUrl(m.provider) && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={getProviderLogoUrl(m.provider)!}
+                alt={m.provider}
+                width={48}
+                height={48}
+                className="rounded-lg object-contain"
+              />
+            )}
             <span className="text-sm text-slate-400">{m.provider}</span>
             {m.pricing_tier && (
               <span className={`badge ${getPricingBadgeColor(m.pricing_tier)}`}>

@@ -42,3 +42,34 @@ export function scoreToColor(score: number): string {
   if (score >= 2.5) return 'text-orange-500'
   return 'text-red-500'
 }
+
+const PROVIDER_DOMAINS: Record<string, string> = {
+  'OpenAI':           'openai.com',
+  'Anthropic':        'anthropic.com',
+  'Google':           'google.com',
+  'Meta':             'meta.com',
+  'Mistral AI':       'mistral.ai',
+  'xAI':              'x.ai',
+  'Microsoft':        'microsoft.com',
+  'Amazon':           'aws.amazon.com',
+  'DeepSeek':         'deepseek.com',
+  'Cohere':           'cohere.com',
+  'NVIDIA':           'nvidia.com',
+  'Perplexity':       'perplexity.ai',
+  'Together AI':      'together.ai',
+  'Databricks':       'databricks.com',
+  'Inflection':       'inflection.ai',
+  'AI21 Labs':        'ai21.com',
+  'Writer':           'writer.com',
+  'Nous Research':    'nousresearch.com',
+  'Alibaba (Qwen)':   'alibaba.com',
+  'ByteDance':        'bytedance.com',
+  'Tencent':          'tencent.com',
+  'Baidu':            'baidu.com',
+}
+
+export function getProviderLogoUrl(provider: string): string | null {
+  const domain = PROVIDER_DOMAINS[provider]
+  if (!domain) return null
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+}
