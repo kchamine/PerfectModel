@@ -54,7 +54,7 @@ export default async function ListsPage() {
                         <p className="text-slate-400 text-sm line-clamp-2">{l.description}</p>
                       )}
                       <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
-                        <span>by @{l.profiles?.username}</span>
+                        <span>by @{l.profiles?.username ?? 'anonymous'}</span>
                         <span>{modelCount} {modelCount === 1 ? 'model' : 'models'}</span>
                         <span>{formatDate(l.created_at)}</span>
                       </div>

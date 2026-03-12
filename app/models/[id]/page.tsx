@@ -38,7 +38,7 @@ export default async function ModelProfilePage({ params }: Props) {
 
   const { data: reviews } = await supabase
     .from('reviews')
-    .select('*, profiles!user_id(username, review_count, specialty_tags)')
+    .select('*, profiles!user_id(username, review_count, specialty_tags, avatar_url)')
     .eq('model_id', model.id)
     .order('created_at', { ascending: false })
     .limit(20)

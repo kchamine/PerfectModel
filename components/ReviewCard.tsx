@@ -73,9 +73,23 @@ export default function ReviewCard({ review, showModel = true, userId, userHasVo
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-white text-sm">
-              @{review.profiles?.username ?? 'anonymous'}
-            </span>
+            {review.profiles?.username ? (
+              <Link href={`/users/${review.profiles.username}`} className="flex items-center gap-1.5 hover:text-brand-400 transition-colors">
+                <div className="w-5 h-5 rounded-full bg-brand-800 flex items-center justify-center shrink-0 overflow-hidden">
+                  {(review.profiles as any).avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={(review.profiles as any).avatar_url} alt={review.profiles.username} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-brand-200 font-semibold" style={{ fontSize: 9 }}>
+                      {review.profiles.username[0].toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <span className="font-medium text-white text-sm">@{review.profiles.username}</span>
+              </Link>
+            ) : (
+              <span className="font-medium text-white text-sm">anonymous</span>
+            )}
             <span className="badge bg-slate-800 text-slate-300 text-xs">{useCaseLabel}</span>
             {showModel && review.models && (
               <Link href={`/models/${review.models.slug}`} className="text-brand-400 text-xs hover:underline">

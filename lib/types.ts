@@ -45,6 +45,7 @@ export interface Profile {
   id: string
   username: string
   bio: string | null
+  avatar_url: string | null
   specialty_tags: string[]
   review_count: number
   created_at: string

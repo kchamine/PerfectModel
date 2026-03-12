@@ -44,7 +44,13 @@ export default async function ListDetailPage({ params }: Props) {
           <p className="text-slate-400 mb-4">{l.description}</p>
         )}
         <div className="flex items-center gap-4 text-sm text-slate-500">
-          <span>by @{l.profiles?.username}</span>
+          {l.profiles?.username ? (
+            <Link href={`/users/${l.profiles.username}`} className="hover:text-white transition-colors">
+              by @{l.profiles.username}
+            </Link>
+          ) : (
+            <span>by anonymous</span>
+          )}
           <span>{models.length} {models.length === 1 ? 'model' : 'models'}</span>
           <span>Created {formatDate(l.created_at)}</span>
         </div>
